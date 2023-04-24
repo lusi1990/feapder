@@ -8,17 +8,16 @@ Created on 2021-04-18 14:12:21
 @email:  mkdir700@gmail.com
 """
 import re
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 from urllib import parse
 
+import feapder.setting as setting
 import pymongo
+from feapder.utils.log import log
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
-from pymongo.errors import DuplicateKeyError, BulkWriteError
-
-import feapder.setting as setting
-from feapder.utils.log import log
+from pymongo.errors import BulkWriteError, DuplicateKeyError
 
 
 class MongoDB:
@@ -46,7 +45,11 @@ class MongoDB:
             if not user_pass:
                 user_pass = setting.MONGO_USER_PASS
             self.client = MongoClient(
-                host=ip, port=port, username=user_name, password=user_pass
+                host=ip,
+                port=port,
+                username=user_name,
+                password=user_pass,
+                maxPoolSize=10,
             )
 
         self.db = self.get_database(db)

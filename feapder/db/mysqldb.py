@@ -9,17 +9,15 @@ Created on 2016-11-16 16:25
 """
 import datetime
 import json
+from typing import Dict, List
 from urllib import parse
-from typing import List, Dict
-
-import pymysql
-from dbutils.pooled_db import PooledDB
-from pymysql import cursors
-from pymysql import err
 
 import feapder.setting as setting
+import pymysql
+from dbutils.pooled_db import PooledDB
 from feapder.utils.log import log
-from feapder.utils.tools import make_insert_sql, make_batch_sql, make_update_sql
+from feapder.utils.tools import make_batch_sql, make_insert_sql, make_update_sql
+from pymysql import cursors, err
 
 
 def auto_retry(func):
@@ -59,8 +57,8 @@ class MysqlDB:
             self.connect_pool = PooledDB(
                 creator=pymysql,
                 mincached=1,
-                maxcached=100,
-                maxconnections=100,
+                maxcached=5,
+                maxconnections=10,
                 blocking=True,
                 ping=7,
                 host=ip,

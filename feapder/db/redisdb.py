@@ -9,16 +9,14 @@ Created on 2016-11-16 16:25
 
 import time
 
+import feapder.setting as setting
 import redis
-from redis._compat import unicode, long, basestring
+from feapder.utils.log import log
+from redis._compat import basestring, long, unicode
 from redis.connection import Encoder as _Encoder
-from redis.exceptions import ConnectionError, TimeoutError
-from redis.exceptions import DataError
+from redis.exceptions import ConnectionError, DataError, TimeoutError
 from redis.sentinel import Sentinel
 from rediscluster import RedisCluster
-
-import feapder.setting as setting
-from feapder.utils.log import log
 
 
 class Encoder(_Encoder):
@@ -151,7 +149,12 @@ class RedisDB:
                         sentinel_kwargs = {}
                         if self._sentinel_password:
                             sentinel_kwargs = {"password": self._sentinel_password}
-                        sentinel = Sentinel(hosts, socket_timeout=3, sentinel_kwargs=sentinel_kwargs, **self._kwargs)
+                        sentinel = Sentinel(
+                            hosts,
+                            socket_timeout=3,
+                            sentinel_kwargs=sentinel_kwargs,
+                            **self._kwargs,
+                        )
                         self._redis = sentinel.master_for(
                             self._service_name,
                             password=self._user_pass,
