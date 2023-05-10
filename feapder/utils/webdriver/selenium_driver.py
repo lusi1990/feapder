@@ -31,6 +31,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
     FIREFOX = "FIREFOX"
+    CHROMIUM = "CHROMIUM"
 
     __CHROME_ATTRS__ = {
         "executable_path",
@@ -41,6 +42,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         "service_log_path",
         "chrome_options",
         "keep_alive",
+        "binary_location",
     }
 
     __FIREFOX_ATTRS__ = {
@@ -83,10 +85,10 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
 
         if self._driver_type == SeleniumDriver.CHROME:
             self.driver = self.chrome_driver()
-
+        elif self._driver_type == SeleniumDriver.CHROMIUM:
+            self.driver = self.chrome_driver()
         elif self._driver_type == SeleniumDriver.PHANTOMJS:
             self.driver = self.phantomjs_driver()
-
         elif self._driver_type == SeleniumDriver.FIREFOX:
             self.driver = self.firefox_driver()
 
@@ -186,7 +188,6 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         chrome_options.add_experimental_option("useAutomationExtension", False)
         # docker 里运行需要
         chrome_options.add_argument("--no-sandbox")
-
         if self._proxy:
             chrome_options.add_argument(
                 "--proxy-server={}".format(
@@ -233,13 +234,14 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             kwargs.update(executable_path=self._executable_path)
         elif self._auto_install_driver:
             kwargs.update(executable_path=ChromeDriverManager().install())
-
+        if self._binary_location:
+            chrome_options.binary_location = self._binary_location
         driver = webdriver.Chrome(options=chrome_options, **kwargs)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
             with open(
-                os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
+                    os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
             ) as f:
                 js = f.read()
                 driver.execute_cdp_cmd(
@@ -249,7 +251,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         if self._xhr_url_regexes:
             assert isinstance(self._xhr_url_regexes, list)
             with open(
-                os.path.join(os.path.dirname(__file__), "../js/intercept.js")
+                    os.path.join(os.path.dirname(__file__), "../js/intercept.js")
             ) as f:
                 js = f.read()
             driver.execute_cdp_cmd(

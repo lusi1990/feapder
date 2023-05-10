@@ -43,6 +43,7 @@ class WebDriver:
         download_path=None,
         auto_install_driver=True,
         use_stealth_js=True,
+        binary_location=None,
         **kwargs,
     ):
         """
@@ -74,6 +75,7 @@ class WebDriver:
         self._auto_install_driver = auto_install_driver
         self._use_stealth_js = use_stealth_js
         self._driver_type = driver_type
+        self._binary_location = binary_location
         self._kwargs = kwargs
 
     @abc.abstractmethod
