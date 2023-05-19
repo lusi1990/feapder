@@ -15,6 +15,7 @@ from logging.handlers import BaseRotatingHandler
 
 import loguru
 from better_exceptions import format_exception
+from pythonjsonlogger import jsonlogger
 
 import feapder.setting as setting
 
@@ -31,7 +32,7 @@ class InterceptHandler(logging.Handler):
 # 现在 xxx.log xxx1.log xxx2.log  如果backup_count 是2位数时  则 01  02  03 三位数 001 002 .. 文件由近及远
 class RotatingFileHandler(BaseRotatingHandler):
     def __init__(
-        self, filename, mode="a", max_bytes=0, backup_count=0, encoding=None, delay=0
+            self, filename, mode="a", max_bytes=0, backup_count=0, encoding=None, delay=0
     ):
         BaseRotatingHandler.__init__(self, filename, mode, encoding, delay)
         self.max_bytes = max_bytes
@@ -67,7 +68,8 @@ class RotatingFileHandler(BaseRotatingHandler):
             self.stream = self._open()
 
     def shouldRollover(self, record):
-
+        if os.path.exists(self.baseFilename) and not os.path.isfile(self.baseFilename):
+            return False
         if self.stream is None:  # delay was set...
             self.stream = self._open()
         if self.max_bytes > 0:  # are we rolling over?
@@ -79,16 +81,17 @@ class RotatingFileHandler(BaseRotatingHandler):
 
 
 def get_logger(
-    name=None,
-    path=None,
-    log_level=None,
-    is_write_to_console=None,
-    is_write_to_file=None,
-    color=None,
-    mode=None,
-    max_bytes=None,
-    backup_count=None,
-    encoding=None,
+        name=None,
+        path=None,
+        log_level=None,
+        is_write_to_console=None,
+        is_write_to_file=None,
+        log_file_json_format=None,
+        color=None,
+        mode=None,
+        max_bytes=None,
+        backup_count=None,
+        encoding=None,
 ):
     """
     @summary: 获取log
@@ -98,6 +101,7 @@ def get_logger(
     @param log_level: log等级 CRITICAL/ERROR/WARNING/INFO/DEBUG
     @param is_write_to_console: 是否输出到控制台
     @param is_write_to_file: 是否写入到文件 默认否
+    @param log_file_json_format: 写入到文件是否用 json 格式 默认否
     @param color：是否有颜色
     @param mode：写文件模式
     @param max_bytes： 每个日志文件的最大字节数
@@ -120,6 +124,11 @@ def get_logger(
         if is_write_to_file is not None
         else setting.LOG_IS_WRITE_TO_FILE
     )
+    log_file_json_format = (
+        log_file_json_format
+        if log_file_json_format is not None
+        else setting.LOG_FILE_USE_JSON_FORMAT
+    )
     color = color if color is not None else setting.LOG_COLOR
     mode = mode or setting.LOG_MODE
     max_bytes = max_bytes or setting.LOG_MAX_BYTES
@@ -140,7 +149,6 @@ def get_logger(
     if is_write_to_file:
         if path and not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-
         rf_handler = RotatingFileHandler(
             path,
             mode=mode,
@@ -148,7 +156,10 @@ def get_logger(
             backup_count=backup_count,
             encoding=encoding,
         )
-        rf_handler.setFormatter(formatter)
+        if log_file_json_format:
+            rf_handler.setFormatter(jsonlogger.JsonFormatter(setting.LOG_FORMAT, timestamp=True))
+        else:
+            rf_handler.setFormatter(formatter)
         logger.addHandler(rf_handler)
     if color and is_write_to_console:
         loguru_handler = InterceptHandler()
@@ -216,6 +227,7 @@ STOP_LOGS = [
 OTHERS_LOG_LEVAL = eval("logging." + setting.OTHERS_LOG_LEVAL)
 for STOP_LOG in STOP_LOGS:
     logging.getLogger(STOP_LOG).setLevel(OTHERS_LOG_LEVAL)
+
 
 # print(logging.Logger.manager.loggerDict) # 取使用debug模块的name
 

@@ -170,7 +170,8 @@
 # LOG_COLOR = True  # 是否带有颜色
 # LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 # LOG_IS_WRITE_TO_FILE = False  # 是否写文件
-# LOG_MODE = "w"  # 写文件的模式
+# LOG_FILE_USE_JSON_FORMAT = False # 文件输出格式是否为 json
+# LOG_MODE = "a"  # 写文件的模式
 # LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
 # LOG_BACKUP_COUNT = 20  # 日志文件保留数量
 # LOG_ENCODING = "utf8"  # 日志文件编码

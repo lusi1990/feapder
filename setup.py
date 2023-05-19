@@ -53,6 +53,7 @@ requires = [
     "webdriver-manager>=3.5.3",
     "terminal-layout>=2.1.3",
     "playwright",
+    "python-json-logger==2.0.7",
 ]
 
 extras_requires = ["bitarray>=1.5.3", "PyExecJS>=1.5.1"]
