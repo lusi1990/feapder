@@ -807,7 +807,10 @@ class RedisDB:
         return self._redis.strlen(table)
 
     def getkeys(self, regex):
-        return self._redis.keys(regex)
+        keys = list()
+        for key in self._redis.scan_iter(regex, count=1000):
+            keys.append(key)
+        return keys
 
     def exists_key(self, key):
         return self._redis.exists(key)
@@ -900,8 +903,9 @@ class RedisDB:
                 reversesort=True,
                 header_style="title",
             )
-
-            keys = self._redis.execute_command("keys *")
+            keys = list()
+            for key in self._redis.scan_iter("*"):
+                keys.append(key)
             for key in tqdm(keys):
                 key_type = self._redis.execute_command("type {}".format(key))
                 if key_type == "set":

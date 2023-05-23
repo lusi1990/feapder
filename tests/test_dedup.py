@@ -9,7 +9,10 @@ class TestDedup(unittest.TestCase):
     def clear(self):
         self.absolute_name = "test_dedup"
         redis = Redis.from_url("redis://@localhost:6379/0", decode_responses=True)
-        keys = redis.keys(self.absolute_name + "*")
+        redis.scan_iter()
+        keys = list()
+        for key in redis.scan_iter(self.absolute_name + "*"):
+            keys.append(key)
         if keys:
             redis.delete(*keys)
 
