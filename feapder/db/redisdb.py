@@ -9,14 +9,15 @@ Created on 2016-11-16 16:25
 
 import time
 
-import feapder.setting as setting
 import redis
-from feapder.utils.log import log
-from redis._compat import basestring, long, unicode
+from redis._compat import unicode, long, basestring
 from redis.connection import Encoder as _Encoder
 from redis.exceptions import ConnectionError, DataError, TimeoutError
 from redis.sentinel import Sentinel
 from rediscluster import RedisCluster
+
+import feapder.setting as setting
+from feapder.utils.log import log
 
 
 class Encoder(_Encoder):
@@ -88,6 +89,8 @@ class RedisDB:
             service_name = setting.REDISDB_SERVICE_NAME
         if sentinel_password is None:
             sentinel_password = setting.SENTINEL_PASSWORD
+        if kwargs is None:
+            kwargs = setting.REDISDB_KWARGS
 
         self._is_redis_cluster = False
 
@@ -190,7 +193,7 @@ class RedisDB:
                     self._is_redis_cluster = False
             else:
                 self._redis = redis.StrictRedis.from_url(
-                    self._url, decode_responses=self._decode_responses
+                    self._url, decode_responses=self._decode_responses, **self._kwargs
                 )
                 self._is_redis_cluster = False
 
