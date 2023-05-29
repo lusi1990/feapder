@@ -43,4 +43,4 @@ if __name__ == '__main__':
     log.info(1)
     log.warning(1)
 
-    test()
+    # test()

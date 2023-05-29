@@ -11,7 +11,7 @@ Created on 2018-12-08 16:50
 import logging
 import os
 import sys
-from logging.handlers import BaseRotatingHandler
+from logging.handlers import BaseRotatingHandler, RotatingFileHandler
 
 import loguru
 from better_exceptions import format_exception
@@ -30,7 +30,7 @@ class InterceptHandler(logging.Handler):
 # 重写 RotatingFileHandler 自定义log的文件名
 # 原来 xxx.log xxx.log.1 xxx.log.2 xxx.log.3 文件由近及远
 # 现在 xxx.log xxx1.log xxx2.log  如果backup_count 是2位数时  则 01  02  03 三位数 001 002 .. 文件由近及远
-class RotatingFileHandler(BaseRotatingHandler):
+class CustomRotatingFileHandler(BaseRotatingHandler):
     def __init__(
             self, filename, mode="a", max_bytes=0, backup_count=0, encoding=None, delay=0
     ):
@@ -152,8 +152,8 @@ def get_logger(
         rf_handler = RotatingFileHandler(
             path,
             mode=mode,
-            max_bytes=max_bytes,
-            backup_count=backup_count,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
             encoding=encoding,
         )
         if log_file_json_format:
