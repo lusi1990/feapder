@@ -232,8 +232,7 @@ class RedisDB:
                 pipe.multi()
             for value in values:
                 pipe.sadd(table, value)
-            pipe.execute()
-
+            return pipe.execute()
         else:
             return self._redis.sadd(table, values)
 
