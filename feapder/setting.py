@@ -85,6 +85,7 @@ WEBDRIVER = dict(
 
 PLAYWRIGHT = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    load_images=True,  # 是否加载图片
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
     driver_type="chromium",  # chromium、firefox、webkit

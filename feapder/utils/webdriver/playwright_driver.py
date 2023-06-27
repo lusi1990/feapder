@@ -106,6 +106,7 @@ class PlaywrightDriver(WebDriver):
                 screen=view_size,
                 viewport=view_size,
                 proxy=proxy,
+                ignore_https_errors=True,
                 storage_state=self.storage_state_path,
             )
         else:
@@ -114,6 +115,7 @@ class PlaywrightDriver(WebDriver):
                 screen=view_size,
                 viewport=view_size,
                 proxy=proxy,
+                ignore_https_errors=True,
             )
 
         if self._use_stealth_js:
@@ -122,7 +124,8 @@ class PlaywrightDriver(WebDriver):
 
         self.page = self.context.new_page()
         self.page.set_default_timeout(self._timeout * 1000)
-
+        if not self._load_images :
+            self.page.route(re.compile(r"(\.png$)|(\.jpg$)|(\.jpeg$)"), lambda route: route.abort())
         if self._page_on_event_callback:
             for event, callback in self._page_on_event_callback.items():
                 self.page.on(event, callback)
