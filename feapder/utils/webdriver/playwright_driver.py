@@ -101,30 +101,23 @@ class PlaywrightDriver(WebDriver):
         :param proxy: context proxy 优先级高于 browser
         :return:
         """
-        user_agent = (
-            self._user_agent() if callable(self._user_agent) else self._user_agent
-        )
-
         view_size = ViewportSize(
             width=self._window_size[0], height=self._window_size[1]
         )
+        kwargs = {
+            "user_agent": (
+                self._user_agent() if callable(self._user_agent) else self._user_agent
+            ),
+            "view_size": view_size,
+            "screen": view_size,
+            "proxy": proxy,
+            "ignore_https_errors": True,
+        }
+
         if self.storage_state_path and os.path.exists(self.storage_state_path):
-            context = self.browser.new_context(
-                user_agent=user_agent,
-                screen=view_size,
-                viewport=view_size,
-                proxy=proxy,
-                ignore_https_errors=True,
-                storage_state=self.storage_state_path,
-            )
-        else:
-            context = self.browser.new_context(
-                user_agent=user_agent,
-                screen=view_size,
-                proxy=proxy,
-                viewport=view_size,
-                ignore_https_errors=True,
-            )
+            kwargs["storage_state"] = self.storage_state_path
+
+        context = self.browser.new_context(**kwargs)
 
         if self._use_stealth_js:
             path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
@@ -139,7 +132,7 @@ class PlaywrightDriver(WebDriver):
         page.set_default_timeout(self._timeout * 1000)
         if not self._load_images:
             page.route(
-                re.compile(r"(\.png$)|(\.png?)|(\.jpg$)|(\.jpg?)|(\.jpeg$)|(\.jpeg?)|(\.svg$)|(\.gif$)|(\.gif?)"),
+                re.compile(r"(\.png$)|(\.png\?)|(\.jpg$)|(\.jpg\?)|(\.jpeg$)|(\.jpeg\?)|(\.svg$)|(\.gif$)|(\.gif\?)"),
                 lambda route: route.abort())
         if self._page_on_event_callback:
             for event, callback in self._page_on_event_callback.items():
