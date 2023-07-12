@@ -10,9 +10,9 @@ Created on 2021/6/18 10:36 上午
 import json
 import sys
 
-from feapder.utils.log import log
 from loguru import logger
 
+from feapder.utils.log import log
 
 
 def sink_serializer(message):
@@ -39,8 +39,12 @@ def test():
 
 
 if __name__ == '__main__':
-    log.debug(1)
-    log.info(1)
-    log.warning(1)
+    log.debug("debug")
+    log.info("info")
+    log.success("success")
+    log.warning("warning")
+    log.error("error")
+    log.critical("critical")
+    log.exception("exception")
 
     # test()

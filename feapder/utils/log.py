@@ -228,7 +228,6 @@ OTHERS_LOG_LEVAL = eval("logging." + setting.OTHERS_LOG_LEVAL)
 for STOP_LOG in STOP_LOGS:
     logging.getLogger(STOP_LOG).setLevel(OTHERS_LOG_LEVAL)
 
-
 # print(logging.Logger.manager.loggerDict) # 取使用debug模块的name
 
 # 日志级别大小关系为：CRITICAL > ERROR > WARNING > INFO > DEBUG
@@ -236,6 +235,13 @@ for STOP_LOG in STOP_LOGS:
 
 class Log:
     log = None
+
+    def func(self, log_level):
+        def wrapper(msg, *args, **kwargs):
+            if self.isEnabledFor(log_level):
+                self._log(log_level, msg, args, **kwargs)
+
+        return wrapper
 
     def __getattr__(self, name):
         # 调用log时再初始化，为了加载最新的setting
@@ -250,6 +256,12 @@ class Log:
     @property
     def info(self):
         return self.__class__.log.info
+
+    @property
+    def success(self):
+        log_level = logging.INFO + 1
+        logging.addLevelName(log_level, "success".upper())
+        return self.func(log_level)
 
     @property
     def warning(self):
