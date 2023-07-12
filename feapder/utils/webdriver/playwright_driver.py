@@ -108,7 +108,7 @@ class PlaywrightDriver(WebDriver):
             "user_agent": (
                 self._user_agent() if callable(self._user_agent) else self._user_agent
             ),
-            "view_size": view_size,
+            "viewport": view_size,
             "screen": view_size,
             "proxy": proxy,
             "ignore_https_errors": True,
