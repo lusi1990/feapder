@@ -19,7 +19,6 @@ try:
 except ImportError:  # python <3.8
     from typing_extensions import Literal
 
-
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
 from playwright.sync_api import Playwright, Browser
 from playwright.sync_api import Response
@@ -32,14 +31,14 @@ from feapder.utils.webdriver.webdirver import *
 
 class PlaywrightDriver(WebDriver):
     def __init__(
-        self,
-        *,
-        page_on_event_callback: dict = None,
-        storage_state_path: str = None,
-        driver_type: Literal["chromium", "firefox", "webkit"] = "chromium",
-        url_regexes: list = None,
-        save_all: bool = False,
-        **kwargs
+            self,
+            *,
+            page_on_event_callback: dict = None,
+            storage_state_path: str = None,
+            driver_type: Literal["chromium", "firefox", "webkit"] = "chromium",
+            url_regexes: list = None,
+            save_all: bool = False,
+            **kwargs
     ):
         """
 
@@ -82,16 +81,10 @@ class PlaywrightDriver(WebDriver):
         else:
             proxy = None
 
-        user_agent = (
-            self._user_agent() if callable(self._user_agent) else self._user_agent
-        )
-
-        view_size = ViewportSize(
-            width=self._window_size[0], height=self._window_size[1]
-        )
-
         # 初始化浏览器对象
         self.driver = sync_playwright().start()
+        # Browser needs to be launched with the global proxy.
+        # If all contexts override the proxy, global proxy will be never used and can be any string
         self.browser = getattr(self.driver, self._driver_type).launch(
             headless=self._headless,
             args=["--no-sandbox"],
@@ -99,36 +92,54 @@ class PlaywrightDriver(WebDriver):
             executable_path=self._executable_path,
             downloads_path=self._download_path,
         )
+        self.context = self._new_context(proxy)
+        self.page = self._new_page()
+
+    def _new_context(self, proxy):
+        """
+
+        :param proxy: context proxy 优先级高于 browser
+        :return:
+        """
+        view_size = ViewportSize(
+            width=self._window_size[0], height=self._window_size[1]
+        )
+        kwargs = {
+            "user_agent": (
+                self._user_agent() if callable(self._user_agent) else self._user_agent
+            ),
+            "view_size": view_size,
+            "screen": view_size,
+            "proxy": proxy,
+            "ignore_https_errors": True,
+        }
 
         if self.storage_state_path and os.path.exists(self.storage_state_path):
-            self.context = self.browser.new_context(
-                user_agent=user_agent,
-                screen=view_size,
-                viewport=view_size,
-                proxy=proxy,
-                storage_state=self.storage_state_path,
-            )
-        else:
-            self.context = self.browser.new_context(
-                user_agent=user_agent,
-                screen=view_size,
-                viewport=view_size,
-                proxy=proxy,
-            )
+            kwargs["storage_state"] = self.storage_state_path
+
+        context = self.browser.new_context(**kwargs)
 
         if self._use_stealth_js:
             path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
-            self.context.add_init_script(path=path)
+            context.add_init_script(path=path)
+        return context
 
-        self.page = self.context.new_page()
-        self.page.set_default_timeout(self._timeout * 1000)
-
+    def _new_page(self):
+        """
+        初始化页面
+        """
+        page = self.context.new_page()
+        page.set_default_timeout(self._timeout * 1000)
+        if not self._load_images:
+            page.route(
+                re.compile(r"(\.png$)|(\.png\?)|(\.jpg$)|(\.jpg\?)|(\.jpeg$)|(\.jpeg\?)|(\.svg$)|(\.gif$)|(\.gif\?)"),
+                lambda route: route.abort())
         if self._page_on_event_callback:
             for event, callback in self._page_on_event_callback.items():
-                self.page.on(event, callback)
-
+                page.on(event, callback)
         if self._url_regexes:
-            self.page.on("response", self.on_response)
+            page.on("response", self.on_response)
+        return page
 
     def __enter__(self):
         return self

@@ -11,7 +11,7 @@ Created on 2018-12-08 16:50
 import logging
 import os
 import sys
-from logging.handlers import BaseRotatingHandler
+from logging.handlers import BaseRotatingHandler, RotatingFileHandler
 
 import loguru
 from better_exceptions import format_exception
@@ -30,7 +30,7 @@ class InterceptHandler(logging.Handler):
 # 重写 RotatingFileHandler 自定义log的文件名
 # 原来 xxx.log xxx.log.1 xxx.log.2 xxx.log.3 文件由近及远
 # 现在 xxx.log xxx1.log xxx2.log  如果backup_count 是2位数时  则 01  02  03 三位数 001 002 .. 文件由近及远
-class RotatingFileHandler(BaseRotatingHandler):
+class CustomRotatingFileHandler(BaseRotatingHandler):
     def __init__(
             self, filename, mode="a", max_bytes=0, backup_count=0, encoding=None, delay=0
     ):
@@ -152,8 +152,8 @@ def get_logger(
         rf_handler = RotatingFileHandler(
             path,
             mode=mode,
-            max_bytes=max_bytes,
-            backup_count=backup_count,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
             encoding=encoding,
         )
         if log_file_json_format:
@@ -228,7 +228,6 @@ OTHERS_LOG_LEVAL = eval("logging." + setting.OTHERS_LOG_LEVAL)
 for STOP_LOG in STOP_LOGS:
     logging.getLogger(STOP_LOG).setLevel(OTHERS_LOG_LEVAL)
 
-
 # print(logging.Logger.manager.loggerDict) # 取使用debug模块的name
 
 # 日志级别大小关系为：CRITICAL > ERROR > WARNING > INFO > DEBUG
@@ -236,6 +235,13 @@ for STOP_LOG in STOP_LOGS:
 
 class Log:
     log = None
+
+    def func(self, log_level):
+        def wrapper(msg, *args, **kwargs):
+            if self.isEnabledFor(log_level):
+                self._log(log_level, msg, args, **kwargs)
+
+        return wrapper
 
     def __getattr__(self, name):
         # 调用log时再初始化，为了加载最新的setting
@@ -250,6 +256,12 @@ class Log:
     @property
     def info(self):
         return self.__class__.log.info
+
+    @property
+    def success(self):
+        log_level = logging.INFO + 1
+        logging.addLevelName(log_level, "success".upper())
+        return self.func(log_level)
 
     @property
     def warning(self):

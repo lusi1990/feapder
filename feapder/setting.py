@@ -33,6 +33,8 @@ MONGO_USER_PASS = os.getenv("MONGO_USER_PASS")
 REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
 REDISDB_USER_PASS = os.getenv("REDISDB_USER_PASS")
 REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
+# 连接redis时携带的其他参数，如ssl=True
+REDISDB_KWARGS = dict()
 # 适用于redis哨兵模式
 REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
 SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
@@ -83,6 +85,7 @@ WEBDRIVER = dict(
 
 PLAYWRIGHT = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    load_images=True,  # 是否加载图片
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
     driver_type="chromium",  # chromium、firefox、webkit

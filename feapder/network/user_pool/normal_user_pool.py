@@ -132,6 +132,7 @@ class NormalUserPool(UserPoolInterface):
         登录 生产cookie
         """
         raise NotImplementedError
+    # todo add func get_all_users
 
     def add_user(self, user: NormalUser):
         log.debug("add {}".format(user))
