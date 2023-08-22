@@ -25,7 +25,6 @@
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
 
-
 ## 环境要求：
 
 - Python 3.6.0+
@@ -42,6 +41,7 @@ pip install feapder
 ```
 
 浏览器渲染版：
+
 ```shell
 pip install "feapder[render]"
 ```
@@ -84,7 +84,7 @@ class FirstSpider(feapder.AirSpider):
 
 if __name__ == "__main__":
     FirstSpider().start()
-        
+
 ```
 
 直接运行，打印如下：
@@ -105,6 +105,11 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 1. start_requests： 生产任务
 2. parse： 解析数据
+
+## TODO
+
+* [x] firefox 初始化不完善, 不适配 selenium 最新版
+* [ ] playwright 爬虫经常停止
 
 ## 参与贡献
 
@@ -128,7 +133,6 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 也可和作者交个朋友，解决您在使用过程中遇到的问题
 
-
 ![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png)
 
 ## 学习交流
@@ -149,4 +153,4 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 
 
-  加好友备注：feapder
+加好友备注：feapder

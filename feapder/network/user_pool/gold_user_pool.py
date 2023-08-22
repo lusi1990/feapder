@@ -12,7 +12,7 @@ import os
 import random
 import time
 from enum import Enum, unique
-from typing import Optional, List
+from typing import List, Optional
 
 from feapder import setting
 from feapder.db.redisdb import RedisDB
@@ -167,8 +167,9 @@ class GoldUserPool(UserPoolInterface):
                 if not user.is_overwork() and user.is_at_work_time():
                     if not user.cookies:
                         log.debug(f"用户 {user.username} 未登录，尝试登录")
-                        self._keep_alive = False
-                        self.run(username)
+                        if block:
+                            self._keep_alive = False
+                            self.run(username)
                         continue
 
                     if not_limit_use_interval or user.is_time_to_use():

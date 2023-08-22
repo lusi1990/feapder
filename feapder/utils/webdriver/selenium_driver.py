@@ -14,6 +14,8 @@ import os
 from typing import Optional, Union, List
 
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -165,14 +167,18 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         kwargs = self.filter_kwargs(self._kwargs, self.__FIREFOX_ATTRS__)
 
         if self._executable_path:
-            kwargs.update(executable_path=self._executable_path)
+            service = FirefoxService(self._executable_path)
         elif self._auto_install_driver:
-            kwargs.update(executable_path=GeckoDriverManager().install())
-
+            service = FirefoxService(executable_path=GeckoDriverManager().install())
+        else:
+            raise Exception('firefox service init failed')
+        # todo set proxy
+        # todo show image
         driver = webdriver.Firefox(
-            capabilities=firefox_capabilities,
+            # capabilities=firefox_capabilities,
             options=firefox_options,
-            firefox_profile=firefox_profile,
+            service=service,
+            # firefox_profile=firefox_profile,
             **kwargs,
         )
 
@@ -231,9 +237,9 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
 
         kwargs = self.filter_kwargs(self._kwargs, self.__CHROME_ATTRS__)
         if self._executable_path:
-            kwargs.update(executable_path=self._executable_path)
+            kwargs.update(service=Service(self._executable_path))
         elif self._auto_install_driver:
-            kwargs.update(executable_path=ChromeDriverManager().install())
+            kwargs.update(service=Service(ChromeDriverManager().install()))
         if self._binary_location:
             chrome_options.binary_location = self._binary_location
         driver = webdriver.Chrome(options=chrome_options, **kwargs)
