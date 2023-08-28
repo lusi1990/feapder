@@ -21,7 +21,7 @@ import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
 from feapder.network.downloader.base import Downloader, RenderDownloader
-from feapder.network.proxy_pool import ProxyPool
+from feapder.network.proxy_pool import BaseProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
 
@@ -31,7 +31,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Request:
     user_agent_pool = user_agent
-    proxies_pool: ProxyPool = None
+    proxies_pool: BaseProxyPool = None
 
     cache_db = None  # redis / pika
     cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
@@ -202,7 +202,7 @@ class Request:
     @property
     def _proxies_pool(self):
         if not self.__class__.proxies_pool:
-            self.__class__.proxies_pool = ProxyPool()
+            self.__class__.proxies_pool = tools.import_cls(setting.PROXY_POOL)()
 
         return self.__class__.proxies_pool
 
@@ -336,7 +336,7 @@ class Request:
         proxies = self.requests_kwargs.get("proxies", -1)
         if proxies == -1 and setting.PROXY_ENABLE and setting.PROXY_EXTRACT_API:
             while True:
-                proxies = self._proxies_pool.get()
+                proxies = self._proxies_pool.get_proxy()
                 if proxies:
                     self.requests_kwargs.update(proxies=proxies)
                     break
@@ -426,6 +426,12 @@ class Request:
             return re.sub(
                 "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
             )
+
+    def del_proxy(self):
+        proxy = self.get_proxy()
+        if proxy:
+            self._proxies_pool.del_proxy(proxy)
+            del self.requests_kwargs["proxies"]
 
     def get_headers(self) -> dict:
         return self.requests_kwargs.get("headers", {})
