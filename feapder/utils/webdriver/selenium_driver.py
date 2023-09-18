@@ -31,6 +31,7 @@ logging.getLogger("WDM").setLevel(OTHERS_LOG_LEVAL)
 
 class SeleniumDriver(WebDriver, RemoteWebDriver):
     CHROME = "CHROME"
+    EDGE = "EDGE"
     PHANTOMJS = "PHANTOMJS"
     FIREFOX = "FIREFOX"
     CHROMIUM = "CHROMIUM"
@@ -46,6 +47,8 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         "keep_alive",
         "binary_location",
     }
+
+    __EDGE_ATTRS__ = __CHROME_ATTRS__
 
     __FIREFOX_ATTRS__ = {
         "firefox_profile",
@@ -90,6 +93,8 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             self.driver = self.chrome_driver()
         elif self._driver_type == SeleniumDriver.CHROMIUM:
             self.driver = self.chrome_driver()
+        elif self._driver_type == SeleniumDriver.EDGE:
+            self.driver = self.edge_driver()
         elif self._driver_type == SeleniumDriver.PHANTOMJS:
             self.driver = self.phantomjs_driver()
         elif self._driver_type == SeleniumDriver.FIREFOX:
@@ -244,6 +249,110 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         if self._binary_location:
             chrome_options.binary_location = self._binary_location
         driver = webdriver.Chrome(options=chrome_options, **kwargs)
+
+        # 隐藏浏览器特征
+        if self._use_stealth_js:
+            with open(
+                os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
+            ) as f:
+                js = f.read()
+                driver.execute_cdp_cmd(
+                    "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+                )
+
+        if self._xhr_url_regexes:
+            assert isinstance(self._xhr_url_regexes, list)
+            with open(
+                os.path.join(os.path.dirname(__file__), "../js/intercept.js")
+            ) as f:
+                js = f.read()
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+            )
+            js = f"window.__urlRegexes = {self._xhr_url_regexes}"
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+            )
+
+        if self._download_path:
+            driver.command_executor._commands["send_command"] = (
+                "POST",
+                "/session/$sessionId/chromium/send_command",
+            )
+            params = {
+                "cmd": "Page.setDownloadBehavior",
+                "params": {"behavior": "allow", "downloadPath": self._download_path},
+            }
+            driver.execute("send_command", params)
+
+        return driver
+
+    def edge_driver(self):
+        edge_options = webdriver.EdgeOptions()
+        # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
+        edge_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        edge_options.add_experimental_option("useAutomationExtension", False)
+        # docker 里运行需要
+        edge_options.add_argument("--no-sandbox")
+        try:
+            from selenium.webdriver.edge.service import Service
+        except (ImportError, ModuleNotFoundError):
+            Service = None
+
+        if self._proxy:
+            edge_options.add_argument(
+                "--proxy-server={}".format(
+                    self._proxy() if callable(self._proxy) else self._proxy
+                )
+            )
+        if self._user_agent:
+            edge_options.add_argument(
+                "user-agent={}".format(
+                    self._user_agent()
+                    if callable(self._user_agent)
+                    else self._user_agent
+                )
+            )
+        if not self._load_images:
+            edge_options.add_experimental_option(
+                "prefs", {"profile.managed_default_content_settings.images": 2}
+            )
+
+        if self._headless:
+            edge_options.add_argument("--headless")
+            edge_options.add_argument("--disable-gpu")
+
+        if self._window_size:
+            edge_options.add_argument(
+                "--window-size={},{}".format(self._window_size[0], self._window_size[1])
+            )
+
+        if self._download_path:
+            os.makedirs(self._download_path, exist_ok=True)
+            prefs = {
+                "download.prompt_for_download": False,
+                "download.default_directory": self._download_path,
+            }
+            edge_options.add_experimental_option("prefs", prefs)
+
+        # 添加自定义的配置参数
+        if self._custom_argument:
+            for arg in self._custom_argument:
+                edge_options.add_argument(arg)
+
+        kwargs = self.filter_kwargs(self._kwargs, self.__CHROME_ATTRS__)
+        if Service is None:
+            if self._executable_path:
+                kwargs.update(executable_path=self._executable_path)
+            elif self._auto_install_driver:
+                raise NotImplementedError("edge not support auto install driver")
+        else:
+            if self._executable_path:
+                kwargs.update(service=Service(self._executable_path))
+            elif self._auto_install_driver:
+                raise NotImplementedError("edge not support auto install driver")
+
+        driver = webdriver.Edge(options=edge_options, **kwargs)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
