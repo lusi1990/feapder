@@ -188,7 +188,7 @@ class MysqlDB:
         else:
             result = cursor.fetchall()
 
-        if to_json:
+        if to_json and result:
             columns = [i[0] for i in cursor.description]
 
             # 处理数据
