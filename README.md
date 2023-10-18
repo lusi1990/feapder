@@ -16,7 +16,8 @@
 
 读音: `[ˈfiːpdə]`
 
-![Feapder](https://tva1.sinaimg.cn/large/008vxvgGly1h8byrr75xnj30u02f7k0j.jpg)
+![feapder](http://markdown-media.oss-cn-beijing.aliyuncs.com/2023/09/04/feapder.jpg)
+
 
 ## 文档地址
 
@@ -24,6 +25,7 @@
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
+
 
 ## 环境要求：
 
@@ -58,7 +60,7 @@ pip install "feapder[all]"
 2. 浏览器渲染版：不支持基于内存去重、不支持入库mongo
 3. 完整版：支持所有功能
 
-完整版可能会安装出错，若安装出错，请参考[安装问题](question/安装问题)
+完整版可能会安装出错，若安装出错，请参考[安装问题](docs/question/安装问题.md)
 
 ## 小试一下
 
@@ -108,8 +110,12 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## TODO
 
-* [x] firefox 初始化不完善, 不适配 selenium 最新版
+* [ ] firefox 初始化不完善, 不适配 selenium 最新版
+* [ ] 用户池登录只给用户加锁不是给池加锁
 * [ ] playwright 爬虫经常停止
+* [x] mongo updateItem
+* [ ] firefox user agent 更新为最新的 
+* [ ] playwright 添加 地区 语言等参数
 
 ## 参与贡献
 
@@ -133,6 +139,7 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 也可和作者交个朋友，解决您在使用过程中遇到的问题
 
+
 ![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png)
 
 ## 学习交流
@@ -153,4 +160,4 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 
 
-加好友备注：feapder
+  加好友备注：feapder

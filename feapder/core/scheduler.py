@@ -122,8 +122,7 @@ class Scheduler(threading.Thread):
             setattr(setting, "SPIDER_THREAD_COUNT", thread_count)
         self._thread_count = setting.SPIDER_THREAD_COUNT
 
-        self._spider_name = redis_key
-        self._project_name = redis_key.split(":")[0]
+        self._spider_name = self.name
         self._task_table = task_table
 
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
@@ -136,9 +135,6 @@ class Scheduler(threading.Thread):
         self._last_check_task_count_time = 0
         self._stop_heartbeat = False  # 是否停止心跳
         self._redisdb = RedisDB()
-
-        self._project_total_state_table = "{}_total_state".format(self._project_name)
-        self._is_exist_project_total_state_table = False
 
         # Request 缓存设置
         Request.cached_redis_key = redis_key
@@ -178,7 +174,7 @@ class Scheduler(threading.Thread):
 
         while True:
             try:
-                if self._stop or self.all_thread_is_done():
+                if self._stop_spider or self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
                         self._is_notify_end = True
@@ -198,15 +194,13 @@ class Scheduler(threading.Thread):
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
     def __add_task(self):
-        # 启动parser 的 start_requests
-        self.spider_begin()  # 不自动结束的爬虫此处只能执行一遍
-
         # 判断任务池中属否还有任务，若有接着抓取
         todo_task_count = self._collector.get_requests_count()
         if todo_task_count:
             log.info("检查到有待做任务 %s 条，不重下发新任务，将接着上回异常终止处继续抓取" % todo_task_count)
         else:
             for parser in self._parsers:
+                # 启动parser 的 start_requests
                 results = parser.start_requests()
                 # 添加request到请求队列，由请求队列统一入库
                 if results and not isinstance(results, Iterable):
@@ -239,6 +233,8 @@ class Scheduler(threading.Thread):
                 self._item_buffer.flush()
 
     def _start(self):
+        self.spider_begin()
+
         # 将失败的item入库
         if setting.RETRY_FAILED_ITEMS:
             handle_failed_items = HandleFailedItems(
@@ -489,8 +485,9 @@ class Scheduler(threading.Thread):
 
             spand_time = tools.get_current_timestamp() - begin_timestamp
 
-            msg = "《%s》爬虫结束，耗时 %s" % (
+            msg = "《%s》爬虫%s，采集耗时 %s" % (
                 self._spider_name,
+                "被终止" if self._stop_spider else "结束",
                 tools.format_seconds(spand_time),
             )
             log.info(msg)

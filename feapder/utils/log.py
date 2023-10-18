@@ -157,7 +157,8 @@ def get_logger(
             encoding=encoding,
         )
         if log_file_json_format:
-            rf_handler.setFormatter(jsonlogger.JsonFormatter(setting.LOG_FORMAT, timestamp=True))
+            rf_handler.setFormatter(jsonlogger.JsonFormatter(setting.LOG_FORMAT, timestamp=True,
+                                                             json_ensure_ascii=False))
         else:
             rf_handler.setFormatter(formatter)
         logger.addHandler(rf_handler)

@@ -68,7 +68,7 @@ WEBDRIVER = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
-    driver_type="CHROME",  # CHROME、PHANTOMJS、FIREFOX
+    driver_type="CHROME",  # CHROME、EDGE、PHANTOMJS、FIREFOX
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
@@ -134,6 +134,8 @@ DELETE_KEYS = []
 # 设置代理
 PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n
 PROXY_ENABLE = True
+PROXY_MAX_FAILED_TIMES = 5  # 代理最大失败次数，超过则不使用，自动删除
+PROXY_POOL = "feapder.network.proxy_pool.ProxyPool"  # 代理池
 
 # 随机headers
 RANDOM_HEADERS = True
@@ -145,9 +147,9 @@ DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit
 USE_SESSION = False
 
 # 下载
-DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
+DOWNLOADER = "feapder.network.downloader.RequestsDownloader"  # 请求下载器
 SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
-RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
+RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"  # 渲染下载器
 # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader"
 MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
@@ -167,6 +169,7 @@ REQUEST_FILTER_SETTING = dict(
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
+DINGDING_WARNING_SECRET = None  # 加签密钥
 # 飞书报警
 # https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN#e1cdee9f
 FEISHU_WARNING_URL = ""  # 飞书机器人api
