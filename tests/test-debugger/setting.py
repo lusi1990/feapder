@@ -16,7 +16,6 @@
 # MONGO_DB = ""
 # MONGO_USER_NAME = ""
 # MONGO_USER_PASS = ""
-# MONGO_URL = "
 #
 # # REDIS
 # # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
@@ -49,34 +48,34 @@
 # KEEP_ALIVE = False  # 爬虫是否常驻
 
 # 下载
-# DOWNLOADER = "feapder.network.downloader.RequestsDownloader"  # 请求下载器
+# DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
 # SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
-# RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"  # 渲染下载器
+# RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
 # # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader"
 # MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # # 浏览器渲染
-# WEBDRIVER = dict(
-#     pool_size=1,  # 浏览器的数量
-#     load_images=True,  # 是否加载图片
-#     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
-#     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
-#     headless=False,  # 是否为无头浏览器
-#     driver_type="CHROME",  # CHROME、EDGE、PHANTOMJS、FIREFOX
-#     timeout=30,  # 请求超时时间
-#     window_size=(1024, 800),  # 窗口大小
-#     executable_path=None,  # 浏览器路径，默认为默认路径
-#     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
-#     custom_argument=[
-#         "--ignore-certificate-errors",
-#         "--disable-blink-features=AutomationControlled",
-#     ],  # 自定义浏览器渲染参数
-#     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
-#     auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
-#     download_path=None,  # 下载文件的路径
-#     use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
-# )
-#
+WEBDRIVER = dict(
+    pool_size=1,  # 浏览器的数量
+    load_images=True,  # 是否加载图片
+    user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+    headless=False,  # 是否为无头浏览器
+    driver_type="CHROME",  # CHROME、EDGE、PHANTOMJS、FIREFOX
+    timeout=30,  # 请求超时时间
+    window_size=(1024, 800),  # 窗口大小
+    executable_path=None,  # 浏览器路径，默认为默认路径
+    render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+    custom_argument=[
+        "--ignore-certificate-errors",
+        "--disable-blink-features=AutomationControlled",
+    ],  # 自定义浏览器渲染参数
+    xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
+    auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
+    download_path=None,  # 下载文件的路径
+    use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
+)
+
 # PLAYWRIGHT = dict(
 #     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
 #     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
@@ -122,8 +121,6 @@
 # # 设置代理
 # PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n
 # PROXY_ENABLE = True
-# PROXY_MAX_FAILED_TIMES = 5  # 代理最大失败次数，超过则不使用，自动删除
-# PROXY_POOL = "feapder.network.proxy_pool.ProxyPool"  # 代理池
 #
 # # 随机headers
 # RANDOM_HEADERS = True
@@ -148,10 +145,8 @@
 # # 报警 支持钉钉、飞书、企业微信、邮件
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
-# DINGDING_WARNING_PHONE = ""  # 被@的群成员手机号，支持列表，可指定多个。
-# DINGDING_WARNING_USER_ID = ""  # 被@的群成员userId，支持列表，可指定多个
+# DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 # DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
-# DINGDING_WARNING_SECRET = None  # 加签密钥
 # # 飞书报警
 # # https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN#e1cdee9f
 # FEISHU_WARNING_URL = ""  # 飞书机器人api

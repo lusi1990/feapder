@@ -8,8 +8,6 @@ Created on 2020/4/22 12:05 AM
 @email: boris_liu@foxmail.com
 """
 
-from threading import Thread
-
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
@@ -20,9 +18,10 @@ from feapder.db.memorydb import MemoryDB
 from feapder.network.request import Request
 from feapder.utils import metrics
 from feapder.utils.log import log
+from feapder.utils.tail_thread import TailThread
 
 
-class AirSpider(BaseParser, Thread):
+class AirSpider(BaseParser, TailThread):
     __custom_setting__ = {}
 
     def __init__(self, thread_count=None):
@@ -41,7 +40,7 @@ class AirSpider(BaseParser, Thread):
 
         self._memory_db = MemoryDB()
         self._parser_controls = []
-        self._item_buffer = ItemBuffer(redis_key="air_spider")
+        self._item_buffer = ItemBuffer(redis_key=self.name)
         self._request_buffer = AirSpiderRequestBuffer(
             db=self._memory_db, dedup_name=self.name
         )
@@ -109,8 +108,8 @@ class AirSpider(BaseParser, Thread):
                     # 关闭webdirver
                     Request.render_downloader and Request.render_downloader.close_all()
 
-                    if self._stop:
-                        log.info("爬虫被停止")
+                    if self._stop_spider:
+                        log.info("爬虫被终止")
                     else:
                         log.info("无任务，爬虫结束")
                     break

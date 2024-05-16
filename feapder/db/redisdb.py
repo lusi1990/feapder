@@ -6,16 +6,15 @@ Created on 2016-11-16 16:25
 ---------
 @author: Boris
 """
-
+import os
 import time
+from typing import Union, List
 
 import redis
-from redis._compat import unicode, long, basestring
 from redis.connection import Encoder as _Encoder
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
 from redis.sentinel import Sentinel
-from rediscluster import RedisCluster
 
 import feapder.setting as setting
 from feapder.utils.log import log
@@ -34,19 +33,19 @@ class Encoder(_Encoder):
         #     )
         elif isinstance(value, float):
             value = repr(value).encode()
-        elif isinstance(value, (int, long)):
+        elif isinstance(value, int):
             # python 2 repr() on longs is '123L', so use str() instead
             value = str(value).encode()
         elif isinstance(value, (list, dict, tuple)):
-            value = unicode(value)
-        elif not isinstance(value, basestring):
+            value = str(value)
+        elif not isinstance(value, str):
             # a value we don't know how to deal with. throw an error
             typename = type(value).__name__
             raise DataError(
                 "Invalid input of type: '%s'. Convert to a "
                 "bytes, string, int or float first." % typename
             )
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode(self.encoding, self.encoding_errors)
         return value
 
@@ -90,6 +89,8 @@ class RedisDB:
             service_name = setting.REDISDB_SERVICE_NAME
         if sentinel_password is None:
             sentinel_password = setting.SENTINEL_PASSWORD
+        if kwargs is None:
+            kwargs = setting.REDISDB_KWARGS
 
         self._is_redis_cluster = False
 
@@ -163,6 +164,12 @@ class RedisDB:
                         )
 
                     else:
+                        try:
+                            from rediscluster import RedisCluster
+                        except ModuleNotFoundError as e:
+                            log.error('请安装 pip install "feapder[all]"')
+                            os._exit(0)
+
                         # log.debug("使用redis集群模式")
                         self._redis = RedisCluster(
                             startup_nodes=startup_nodes,
@@ -187,7 +194,7 @@ class RedisDB:
                     self._is_redis_cluster = False
             else:
                 self._redis = redis.StrictRedis.from_url(
-                    self._url, decode_responses=self._decode_responses
+                    self._url, decode_responses=self._decode_responses, **self._kwargs
                 )
                 self._is_redis_cluster = False
 
@@ -590,18 +597,17 @@ class RedisDB:
         return is_exists
 
     def lpush(self, table, values):
-
         if isinstance(values, list):
             pipe = self._redis.pipeline()
 
             if not self._is_redis_cluster:
                 pipe.multi()
             for value in values:
-                pipe.rpush(table, value)
+                pipe.lpush(table, value)
             pipe.execute()
 
         else:
-            return self._redis.rpush(table, values)
+            return self._redis.lpush(table, values)
 
     def lpop(self, table, count=1):
         """
@@ -745,27 +751,41 @@ class RedisDB:
     def hkeys(self, table):
         return self._redis.hkeys(table)
 
-    def setbit(self, table, offsets, values):
+    def hvals(self, key):
+        return self._redis.hvals(key)
+
+    def setbit(
+        self, table, offsets: Union[int, List[int]], values: Union[int, List[int]]
+    ):
         """
-        设置字符串数组某一位的值， 返回之前的值
-        @param table:
+        设置字符串数组某一位的值，返回之前的值
+        @param table: Redis key
         @param offsets: 支持列表或单个值
         @param values: 支持列表或单个值
         @return: list / 单个值
         """
         if isinstance(offsets, list):
-            if not isinstance(values, list):
-                values = [values] * len(offsets)
+            if isinstance(values, int):
+                # 使用lua脚本，数据是一起传给redis的，降低了网络开销，但redis会阻塞
+                script = """
+                            local value = table.remove(ARGV, 1)
+                            local offsets = ARGV
+                            local results = {}
+                            for i, offset in ipairs(offsets) do
+                                results[i] = redis.call('SETBIT', KEYS[1], offset, value)
+                            end
+                            return results
+                        """
+                return self._redis.eval(script, 1, table, values, *offsets)
             else:
                 assert len(offsets) == len(values), "offsets值要与values值一一对应"
+                pipe = self._redis.pipeline()
+                pipe.multi()
 
-            pipe = self._redis.pipeline()
-            pipe.multi()
+                for offset, value in zip(offsets, values):
+                    pipe.setbit(table, offset, value)
 
-            for offset, value in zip(offsets, values):
-                pipe.setbit(table, offset, value)
-
-            return pipe.execute()
+                return pipe.execute()
 
         else:
             return self._redis.setbit(table, offsets, values)
@@ -792,6 +812,20 @@ class RedisDB:
         return self._redis.bitcount(table)
 
     def strset(self, table, value, **kwargs):
+        """
+        设置键值
+        Args:
+            table:
+            value:
+            **kwargs:
+                ex: Union[None, int, timedelta] = ..., 设置键的过期时间为 second 秒
+                px: Union[None, int, timedelta] = ..., 设置键的过期时间为 millisecond 毫秒
+                nx: bool = ..., 只有键不存在时，才对键进行设置操作
+                xx: bool = ..., 只有键已经存在时，才对键进行设置操作
+                keepttl: bool = ..., 保留键的过期时间
+        Returns:
+
+        """
         return self._redis.set(table, value, **kwargs)
 
     def str_incrby(self, table, value):
